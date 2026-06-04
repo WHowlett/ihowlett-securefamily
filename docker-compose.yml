@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: securefamily-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: securefamily_user
+      POSTGRES_PASSWORD: securefamily_password
+      POSTGRES_DB: securefamily_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - securefamily_postgres_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: securefamily-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: securefamily_admin
+      MINIO_ROOT_PASSWORD: securefamily_minio_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - securefamily_minio_data:/data
+
+volumes:
+  securefamily_postgres_data:
+  securefamily_minio_data:

@@ -1,0 +1,21 @@
+# Environment Files
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+
+# Build Output
+.next/
+dist/
+
+# Logs
+*.log
+
+# Prisma
+prisma/dev.db
+
+# OS
+.DS_Store
+Thumbs.db

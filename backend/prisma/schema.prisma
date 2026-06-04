@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  ADMIN
+  GUARDIAN
+  FAMILY_MEMBER
+  EMERGENCY_CONTACT
+  MEDICAL_GUEST
+  LEGAL_GUEST
+}
+
+enum DocumentCategory {
+  MEDICAL
+  LEGAL
+  INSURANCE
+  FINANCIAL
+  EDUCATION
+  PERSONAL
+  EMERGENCY
+}
+
+enum ReminderType {
+  APPOINTMENT
+  MEDICATION_REFILL
+  INSURANCE_RENEWAL
+  LICENSE_RENEWAL
+  PASSPORT_EXPIRATION
+  LEGAL_DEADLINE
+  SCHOOL_EVENT
+  OTHER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  mfaEnabled   Boolean  @default(false)
+  role         RoleName @default(FAMILY_MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documents    Document[]
+  auditLogs    AuditLog[]
+}
+
+model FamilyMember {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime?
+  relationship String?
+  photoUrl     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  medicalProfile MedicalProfile?
+  documents       Document[]
+  reminders       Reminder[]
+}
+
+model MedicalProfile {
+  id             String   @id @default(uuid())
+  familyMemberId String   @unique
+  bloodType      String?
+  allergies      String?
+  conditions     String?
+  medications    String?
+  primaryDoctor  String?
+  insurance      String?
+  pharmacy       String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  familyMember FamilyMember @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id             String           @id @default(uuid())
+  familyMemberId String?
+  uploadedById   String
+  category       DocumentCategory
+  title          String
+  fileName       String
+  storagePath    String
+  mimeType       String?
+  sizeBytes      Int?
+  expiresAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  familyMember FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+}
+
+model Reminder {
+  id             String       @id @default(uuid())
+  familyMemberId String?
+  title          String
+  description    String?
+  type           ReminderType
+  dueDate        DateTime
+  completed      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  familyMember FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
+}
+
+model PdfRequest {
+  id          String   @id @default(uuid())
+  requestedBy String
+  profileName String?
+  sections    String
+  status      String   @default("PENDING")
+  approvedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  target    String?
+  ipAddress String?
+  userAgent String?
+  result    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

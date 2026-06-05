@@ -6,7 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { FamilyMembersService } from './family-members.service';
 
 @Controller('family-members')
@@ -35,6 +38,28 @@ export class FamilyMembersController {
     },
   ) {
     return this.familyMembersService.create(body);
+  }
+
+  @Post(':id/documents/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadDocument(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body()
+    body: {
+      category:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title: string;
+      expiresAt?: string | null;
+    },
+  ) {
+    return this.familyMembersService.uploadDocument(id, file, body);
   }
 
   @Post(':id/medical-profile')

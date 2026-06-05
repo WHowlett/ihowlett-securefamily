@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { StorageService } from '../storage/storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FamilyMembersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+  private readonly prisma: PrismaService,
+  private readonly storageService: StorageService,
+) {}
 
   findAll() {
     return this.prisma.familyMember.findMany({
@@ -223,6 +227,41 @@ export class FamilyMembersService {
     return this.prisma.document.delete({
       where: {
         id: documentId,
+      },
+    });
+  }
+
+  async uploadDocument(
+    familyMemberId: string,
+    file: Express.Multer.File,
+    data: {
+      category:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title: string;
+      expiresAt?: string | null;
+    },
+  ) {
+    const uploadedFile = await this.storageService.uploadFile({
+      familyMemberId,
+      file,
+    });
+
+    return this.prisma.document.create({
+      data: {
+        familyMemberId,
+        category: data.category,
+        title: data.title,
+        fileName: uploadedFile.fileName,
+        storagePath: uploadedFile.storagePath,
+        mimeType: uploadedFile.mimeType,
+        sizeBytes: uploadedFile.sizeBytes,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
   }

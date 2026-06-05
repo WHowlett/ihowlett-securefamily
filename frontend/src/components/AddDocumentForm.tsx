@@ -24,45 +24,46 @@ export default function AddDocumentForm({
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<DocumentCategory>("LEGAL");
-  const [fileName, setFileName] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("Saving document...");
 
-    const cleanFileName =
-      fileName.trim() || `${title.trim().toLowerCase().replaceAll(" ", "-")}.pdf`;
+    if (!file) {
+      setMessage("Please select a file.");
+      return;
+    }
+
+    setMessage("Uploading document...");
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("category", category);
+    formData.append("file", file);
+
+    if (expiresAt) {
+      formData.append("expiresAt", new Date(expiresAt).toISOString());
+    }
 
     const res = await fetch(
-      `http://localhost:3000/family-members/${familyMemberId}/documents`,
+      `http://localhost:3000/family-members/${familyMemberId}/documents/upload`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          category,
-          fileName: cleanFileName,
-          storagePath: `placeholder/${cleanFileName}`,
-          mimeType: "application/pdf",
-          sizeBytes: 0,
-          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
-        }),
+        body: formData,
       }
     );
 
     if (!res.ok) {
-      setMessage("Document could not be saved.");
+      setMessage("Document could not be uploaded.");
       return;
     }
 
     setTitle("");
     setCategory("LEGAL");
-    setFileName("");
     setExpiresAt("");
+    setFile(null);
     setMessage("");
     setIsOpen(false);
     router.refresh();
@@ -89,7 +90,7 @@ export default function AddDocumentForm({
         <div>
           <h4 className="text-lg font-bold text-slate-900">Add Document</h4>
           <p className="mt-1 text-sm text-slate-500">
-            Add document metadata now. Secure file upload will be connected next.
+            Upload a secure document file and attach it to this family profile.
           </p>
         </div>
 
@@ -137,13 +138,13 @@ export default function AddDocumentForm({
 
         <label>
           <span className="mb-1 block text-sm font-medium text-slate-700">
-            File Name
+            Document File
           </span>
           <input
+            type="file"
             className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            placeholder="passport.pdf"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            required
           />
         </label>
 
@@ -160,12 +161,18 @@ export default function AddDocumentForm({
         </label>
       </div>
 
+      {file && (
+        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+          Selected file: <span className="font-semibold">{file.name}</span>
+        </div>
+      )}
+
       <div className="mt-5 flex items-center gap-4">
         <button
           type="submit"
           className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
         >
-          Save Document
+          Upload Document
         </button>
 
         {message && <p className="text-sm text-slate-500">{message}</p>}

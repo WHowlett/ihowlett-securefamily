@@ -46,4 +46,26 @@ export class FamilyMembersController {
   ) {
     return this.familyMembersService.upsertMedicalProfile(id, body);
   }
+
+  @Post(':id/reminders')
+  createReminder(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      type:
+        | 'APPOINTMENT'
+        | 'MEDICATION_REFILL'
+        | 'INSURANCE_RENEWAL'
+        | 'LICENSE_RENEWAL'
+        | 'PASSPORT_EXPIRATION'
+        | 'LEGAL_DEADLINE'
+        | 'SCHOOL_EVENT'
+        | 'OTHER';
+      dueDate: string;
+    },
+  ) {
+    return this.familyMembersService.createReminder(id, body);
+  }
 }

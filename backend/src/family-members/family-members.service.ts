@@ -87,4 +87,32 @@ export class FamilyMembersService {
       },
     });
   }
+
+  createReminder(
+    familyMemberId: string,
+    data: {
+      title: string;
+      description?: string;
+      type:
+        | 'APPOINTMENT'
+        | 'MEDICATION_REFILL'
+        | 'INSURANCE_RENEWAL'
+        | 'LICENSE_RENEWAL'
+        | 'PASSPORT_EXPIRATION'
+        | 'LEGAL_DEADLINE'
+        | 'SCHOOL_EVENT'
+        | 'OTHER';
+      dueDate: string;
+    },
+  ) {
+    return this.prisma.reminder.create({
+      data: {
+        familyMemberId,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        dueDate: new Date(data.dueDate),
+      },
+    });
+  }
 }

@@ -16,6 +16,20 @@ enum RoleName {
   LEGAL_GUEST
 }
 
+enum ReminderSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReminderStatus {
+  OPEN
+  COMPLETED
+  SNOOZED
+  CANCELLED
+}
+
 enum DocumentCategory {
   MEDICAL
   LEGAL
@@ -101,15 +115,17 @@ model Document {
 }
 
 model Reminder {
-  id             String       @id @default(uuid())
+  id             String           @id @default(uuid())
   familyMemberId String?
   title          String
   description    String?
   type           ReminderType
+  severity       ReminderSeverity @default(MEDIUM)
+  status         ReminderStatus   @default(OPEN)
   dueDate        DateTime
-  completed      Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  completed      Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   familyMember FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
 }

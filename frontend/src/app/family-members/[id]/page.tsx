@@ -1,6 +1,9 @@
 import MedicalProfileForm from "@/components/MedicalProfileForm";
 import Link from "next/link";
 
+type ReminderSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+type ReminderStatus = "OPEN" | "COMPLETED" | "SNOOZED" | "CANCELLED";
+
 type FamilyMember = {
   id: string;
   firstName: string;
@@ -19,7 +22,16 @@ type FamilyMember = {
     notes?: string;
   } | null;
   documents: unknown[];
-  reminders: unknown[];
+  reminders: {
+    id: string;
+    title: string;
+    description?: string | null;
+    type: string;
+    severity: ReminderSeverity;
+    status: ReminderStatus;
+    dueDate: string;
+    completed: boolean;
+  }[];
 };
 
 async function getFamilyMember(id: string): Promise<FamilyMember> {
@@ -41,6 +53,28 @@ export default async function FamilyMemberPage({
 }) {
   const { id } = await params;
   const member = await getFamilyMember(id);
+
+  const severityRank: Record<ReminderSeverity, number> = {
+    CRITICAL: 4,
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1,
+  };
+
+  const sortedReminders = [...member.reminders].sort((a, b) => {
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
+
+    const severityDifference =
+      severityRank[b.severity] - severityRank[a.severity];
+
+    if (severityDifference !== 0) {
+      return severityDifference;
+    }
+
+    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  });
 
   return (
     <main className="min-h-screen bg-slate-50 p-8 text-slate-900">
@@ -114,7 +148,10 @@ export default async function FamilyMemberPage({
               <Info label="Allergies" value={member.medicalProfile.allergies} />
               <Info label="Conditions" value={member.medicalProfile.conditions} />
               <Info label="Medications" value={member.medicalProfile.medications} />
-              <Info label="Primary Doctor" value={member.medicalProfile.primaryDoctor} />
+              <Info
+                label="Primary Doctor"
+                value={member.medicalProfile.primaryDoctor}
+              />
               <Info label="Insurance" value={member.medicalProfile.insurance} />
               <Info label="Pharmacy" value={member.medicalProfile.pharmacy} />
               <Info label="Notes" value={member.medicalProfile.notes} />
@@ -150,11 +187,71 @@ export default async function FamilyMemberPage({
             button="Manage Contacts"
           />
 
-          <FeaturePanel
-            title="Reminders"
-            description="Track appointments, medication refills, insurance renewals, license expirations, passport dates, legal deadlines, and school events."
-            button="Add Reminder"
-          />
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Reminders</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Track appointments, medication refills, insurance renewals,
+                  license expirations, passport dates, legal deadlines, and
+                  school events.
+                </p>
+              </div>
+            </div>
+
+            {member.reminders.length === 0 ? (
+              <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
+                No reminders yet.
+              </div>
+            ) : (
+              <div className="mt-5 space-y-3">
+                {sortedReminders.map((reminder) => (
+                  <div
+                    key={reminder.id}
+                    className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {reminder.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {reminder.description || "No description"}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getSeverityClass(
+                            reminder.severity
+                          )}`}
+                        >
+                          {reminder.severity}
+                        </span>
+
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                          {reminder.type.replaceAll("_", " ")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="mt-3 text-sm text-slate-500">
+                      Due:{" "}
+                      {new Date(reminder.dueDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
+              Add Reminder
+            </button>
+          </div>
 
           <FeaturePanel
             title="PDF Export Requests"
@@ -220,4 +317,19 @@ function FeaturePanel({
       </button>
     </div>
   );
+}
+
+function getSeverityClass(severity: ReminderSeverity) {
+  switch (severity) {
+    case "CRITICAL":
+      return "bg-red-50 text-red-700 border border-red-200";
+    case "HIGH":
+      return "bg-orange-50 text-orange-700 border border-orange-200";
+    case "MEDIUM":
+      return "bg-blue-50 text-blue-700 border border-blue-200";
+    case "LOW":
+      return "bg-slate-100 text-slate-600 border border-slate-200";
+    default:
+      return "bg-slate-100 text-slate-600 border border-slate-200";
+  }
 }

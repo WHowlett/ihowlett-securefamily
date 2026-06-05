@@ -162,7 +162,7 @@ export class FamilyMembersService {
       storagePath?: string;
       mimeType?: string;
       sizeBytes?: number;
-      expiresAt?: string;
+      expiresAt?: string | null;
     },
   ) {
     return this.prisma.document.create({
@@ -175,6 +175,54 @@ export class FamilyMembersService {
         mimeType: data.mimeType,
         sizeBytes: data.sizeBytes,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      },
+    });
+  }
+
+  updateDocument(
+    documentId: string,
+    data: {
+      category?:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title?: string;
+      fileName?: string;
+      storagePath?: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      expiresAt?: string | null;
+    },
+  ) {
+    return this.prisma.document.update({
+      where: {
+        id: documentId,
+      },
+      data: {
+        category: data.category,
+        title: data.title,
+        fileName: data.fileName,
+        storagePath: data.storagePath,
+        mimeType: data.mimeType,
+        sizeBytes: data.sizeBytes,
+        expiresAt:
+          data.expiresAt === undefined
+            ? undefined
+            : data.expiresAt
+              ? new Date(data.expiresAt)
+              : null,
+      },
+    });
+  }
+
+  deleteDocument(documentId: string) {
+    return this.prisma.document.delete({
+      where: {
+        id: documentId,
       },
     });
   }

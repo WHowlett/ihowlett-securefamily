@@ -106,9 +106,38 @@ export class FamilyMembersController {
       storagePath?: string;
       mimeType?: string;
       sizeBytes?: number;
-      expiresAt?: string;
+      expiresAt?: string | null;
     },
   ) {
     return this.familyMembersService.createDocument(id, body);
+  }
+
+  @Patch('documents/:documentId')
+  updateDocument(
+    @Param('documentId') documentId: string,
+    @Body()
+    body: {
+      category?:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title?: string;
+      fileName?: string;
+      storagePath?: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      expiresAt?: string | null;
+    },
+  ) {
+    return this.familyMembersService.updateDocument(documentId, body);
+  }
+
+  @Delete('documents/:documentId')
+  deleteDocument(@Param('documentId') documentId: string) {
+    return this.familyMembersService.deleteDocument(documentId);
   }
 }

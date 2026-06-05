@@ -1,3 +1,5 @@
+import MedicalProfileForm from "@/components/MedicalProfileForm";
+
 type FamilyMember = {
   id: string;
   firstName: string;
@@ -107,8 +109,15 @@ export default async function FamilyMemberPage({
             <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-500">
               No medical profile yet. Next we will add the form to create one.
             </div>
+
           )}
+<MedicalProfileForm
+  familyMemberId={member.id}
+  existingProfile={member.medicalProfile}
+/>
         </section>
+
+
       </div>
     </main>
   );

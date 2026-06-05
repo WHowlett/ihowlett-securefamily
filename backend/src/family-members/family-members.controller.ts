@@ -28,4 +28,22 @@ export class FamilyMembersController {
   ) {
     return this.familyMembersService.create(body);
   }
+
+  @Post(':id/medical-profile')
+  upsertMedicalProfile(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      bloodType?: string;
+      allergies?: string;
+      conditions?: string;
+      medications?: string;
+      primaryDoctor?: string;
+      insurance?: string;
+      pharmacy?: string;
+      notes?: string;
+    },
+  ) {
+    return this.familyMembersService.upsertMedicalProfile(id, body);
+  }
 }

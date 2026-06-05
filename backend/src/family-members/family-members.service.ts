@@ -46,4 +46,45 @@ export class FamilyMembersService {
       },
     });
   }
+
+  upsertMedicalProfile(
+    familyMemberId: string,
+    data: {
+      bloodType?: string;
+      allergies?: string;
+      conditions?: string;
+      medications?: string;
+      primaryDoctor?: string;
+      insurance?: string;
+      pharmacy?: string;
+      notes?: string;
+    },
+  ) {
+    return this.prisma.medicalProfile.upsert({
+      where: {
+        familyMemberId,
+      },
+      update: {
+        bloodType: data.bloodType,
+        allergies: data.allergies,
+        conditions: data.conditions,
+        medications: data.medications,
+        primaryDoctor: data.primaryDoctor,
+        insurance: data.insurance,
+        pharmacy: data.pharmacy,
+        notes: data.notes,
+      },
+      create: {
+        familyMemberId,
+        bloodType: data.bloodType,
+        allergies: data.allergies,
+        conditions: data.conditions,
+        medications: data.medications,
+        primaryDoctor: data.primaryDoctor,
+        insurance: data.insurance,
+        pharmacy: data.pharmacy,
+        notes: data.notes,
+      },
+    });
+  }
 }

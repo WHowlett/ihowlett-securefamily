@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { FamilyMembersService } from './family-members.service';
 
 @Controller('family-members')
@@ -47,7 +55,7 @@ export class FamilyMembersController {
     return this.familyMembersService.upsertMedicalProfile(id, body);
   }
 
-    @Post(':id/reminders')
+  @Post(':id/reminders')
   createReminder(
     @Param('id') id: string,
     @Body()
@@ -68,5 +76,15 @@ export class FamilyMembersController {
     },
   ) {
     return this.familyMembersService.createReminder(id, body);
+  }
+
+  @Patch('reminders/:reminderId/complete')
+  completeReminder(@Param('reminderId') reminderId: string) {
+    return this.familyMembersService.completeReminder(reminderId);
+  }
+
+  @Delete('reminders/:reminderId')
+  deleteReminder(@Param('reminderId') reminderId: string) {
+    return this.familyMembersService.deleteReminder(reminderId);
   }
 }

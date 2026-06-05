@@ -88,7 +88,7 @@ export class FamilyMembersService {
     });
   }
 
-    createReminder(
+  createReminder(
     familyMemberId: string,
     data: {
       title: string;
@@ -114,6 +114,26 @@ export class FamilyMembersService {
         type: data.type,
         severity: data.severity ?? 'MEDIUM',
         dueDate: new Date(data.dueDate),
+      },
+    });
+  }
+
+  completeReminder(reminderId: string) {
+    return this.prisma.reminder.update({
+      where: {
+        id: reminderId,
+      },
+      data: {
+        completed: true,
+        status: 'COMPLETED',
+      },
+    });
+  }
+
+  deleteReminder(reminderId: string) {
+    return this.prisma.reminder.delete({
+      where: {
+        id: reminderId,
       },
     });
   }

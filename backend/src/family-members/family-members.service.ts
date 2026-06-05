@@ -18,6 +18,17 @@ export class FamilyMembersService {
     });
   }
 
+  findOne(id: string) {
+    return this.prisma.familyMember.findUnique({
+      where: { id },
+      include: {
+        medicalProfile: true,
+        documents: true,
+        reminders: true,
+      },
+    });
+  }
+
   create(data: {
     firstName: string;
     lastName: string;

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { FamilyMembersService } from './family-members.service';
 
 @Controller('family-members')
@@ -8,6 +8,11 @@ export class FamilyMembersController {
   @Get()
   findAll() {
     return this.familyMembersService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.familyMembersService.findOne(id);
   }
 
   @Post()

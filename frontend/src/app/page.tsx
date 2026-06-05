@@ -1,4 +1,5 @@
 import AddFamilyMemberForm from "@/components/AddFamilyMemberForm";
+import Link from "next/link";
 
 type FamilyMember = {
   id: string;
@@ -153,10 +154,11 @@ export default async function Home() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {familyMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
-                  >
+                  <Link
+  key={member.id}
+  href={`/family-members/${member.id}`}
+  className="block rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-300 hover:bg-blue-50"
+>
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700">
                       {member.firstName[0]}
                       {member.lastName[0]}
@@ -192,7 +194,7 @@ export default async function Home() {
                         <p className="text-slate-500">Tasks</p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

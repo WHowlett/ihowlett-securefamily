@@ -1,6 +1,8 @@
 import AddReminderForm from "@/components/AddReminderForm";
 import MedicalProfileForm from "@/components/MedicalProfileForm";
 import ReminderActions from "@/components/ReminderActions";
+import AddDocumentForm from "@/components/AddDocumentForm";
+import DocumentActions from "@/components/DocumentActions";
 import Link from "next/link";
 
 type ReminderSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -243,21 +245,14 @@ export default async function FamilyMemberPage({
               </p>
             )}
 
-            <button
-              disabled
-              className="mt-4 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-400"
-            >
-              File view coming with secure upload
-            </button>
+            <DocumentActions document={document} />
           </div>
         );
       })}
     </div>
   )}
 
-  <button className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
-    Add Document
-  </button>
+  <AddDocumentForm familyMemberId={member.id} />
 </div>
 
           <FeaturePanel

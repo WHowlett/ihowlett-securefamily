@@ -87,4 +87,28 @@ export class FamilyMembersController {
   deleteReminder(@Param('reminderId') reminderId: string) {
     return this.familyMembersService.deleteReminder(reminderId);
   }
+
+  @Post(':id/documents')
+  createDocument(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      category:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title: string;
+      fileName: string;
+      storagePath?: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      expiresAt?: string;
+    },
+  ) {
+    return this.familyMembersService.createDocument(id, body);
+  }
 }

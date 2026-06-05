@@ -23,8 +23,16 @@ export class FamilyMembersService {
       where: { id },
       include: {
         medicalProfile: true,
-        documents: true,
-        reminders: true,
+        documents: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        reminders: {
+          orderBy: {
+            dueDate: 'asc',
+          },
+        },
       },
     });
   }
@@ -134,6 +142,39 @@ export class FamilyMembersService {
     return this.prisma.reminder.delete({
       where: {
         id: reminderId,
+      },
+    });
+  }
+
+  createDocument(
+    familyMemberId: string,
+    data: {
+      category:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title: string;
+      fileName: string;
+      storagePath?: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      expiresAt?: string;
+    },
+  ) {
+    return this.prisma.document.create({
+      data: {
+        familyMemberId,
+        category: data.category,
+        title: data.title,
+        fileName: data.fileName,
+        storagePath: data.storagePath ?? `placeholder/${data.fileName}`,
+        mimeType: data.mimeType,
+        sizeBytes: data.sizeBytes,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
   }

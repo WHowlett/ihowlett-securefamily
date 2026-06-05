@@ -23,7 +23,17 @@ type FamilyMember = {
     pharmacy?: string;
     notes?: string;
   } | null;
-  documents: unknown[];
+  documents: {
+  id: string;
+  category: string;
+  title: string;
+  fileName: string;
+  storagePath: string;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  expiresAt?: string | null;
+  createdAt: string;
+}[];
   reminders: {
     id: string;
     title: string;
@@ -177,11 +187,78 @@ export default async function FamilyMemberPage({
             button="Manage Legal Records"
           />
 
-          <FeaturePanel
-            title="Document Vault"
-            description="Upload and organize medical, legal, insurance, financial, education, personal, and emergency documents."
-            button="Open Document Vault"
-          />
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h3 className="text-xl font-bold text-slate-900">Document Vault</h3>
+  <p className="mt-2 text-sm leading-6 text-slate-500">
+    Upload and organize medical, legal, insurance, financial, education,
+    personal, and emergency documents.
+  </p>
+
+  {member.documents.length === 0 ? (
+    <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-500">
+      No documents yet.
+    </div>
+  ) : (
+    <div className="mt-5 space-y-3">
+      {member.documents.map((document) => {
+        const expiration = getExpirationInfo(document.expiresAt);
+
+        return (
+          <div
+            key={document.id}
+            className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-semibold text-slate-900">
+                  {document.title}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {document.fileName}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                  {document.category}
+                </span>
+
+                {expiration && (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${expiration.className}`}
+                  >
+                    {expiration.status}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {expiration ? (
+              <p className="mt-3 text-sm text-slate-500">
+                Expires: {expiration.dateLabel} • {expiration.countdown}
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-slate-500">
+                No expiration date listed.
+              </p>
+            )}
+
+            <button
+              disabled
+              className="mt-4 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-400"
+            >
+              File view coming with secure upload
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  )}
+
+  <button className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
+    Add Document
+  </button>
+</div>
 
           <FeaturePanel
             title="Emergency Contacts"
@@ -339,6 +416,62 @@ function FeaturePanel({
     </div>
   );
 }
+
+function getExpirationInfo(expiresAt?: string | null) {
+  if (!expiresAt) return null;
+
+  const today = new Date();
+  const expirationDate = new Date(expiresAt);
+
+  today.setHours(0, 0, 0, 0);
+  expirationDate.setHours(0, 0, 0, 0);
+
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+  const daysRemaining = Math.ceil(
+    (expirationDate.getTime() - today.getTime()) / millisecondsPerDay
+  );
+
+  const dateLabel = expirationDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  if (daysRemaining < 0) {
+    return {
+      status: "EXPIRED",
+      countdown: `Expired ${Math.abs(daysRemaining)} days ago`,
+      dateLabel,
+      className: "bg-red-50 text-red-700 border border-red-200",
+    };
+  }
+
+  if (daysRemaining <= 30) {
+    return {
+      status: "URGENT",
+      countdown: `${daysRemaining} days remaining`,
+      dateLabel,
+      className: "bg-red-50 text-red-700 border border-red-200",
+    };
+  }
+
+  if (daysRemaining <= 183) {
+    return {
+      status: "EXPIRING SOON",
+      countdown: `${daysRemaining} days remaining`,
+      dateLabel,
+      className: "bg-orange-50 text-orange-700 border border-orange-200",
+    };
+  }
+
+  return {
+    status: "ACTIVE",
+    countdown: `${daysRemaining} days remaining`,
+    dateLabel,
+    className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  };
+}
+
 
 function getSeverityClass(severity: ReminderSeverity) {
   switch (severity) {

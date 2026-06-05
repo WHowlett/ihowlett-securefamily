@@ -99,7 +99,7 @@ model MedicalProfile {
 model Document {
   id             String           @id @default(uuid())
   familyMemberId String?
-  uploadedById   String
+  uploadedById   String?
   category       DocumentCategory
   title          String
   fileName       String
@@ -111,7 +111,7 @@ model Document {
   updatedAt      DateTime         @updatedAt
 
   familyMember FamilyMember? @relation(fields: [familyMemberId], references: [id], onDelete: SetNull)
-  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+  uploadedBy   User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 }
 
 model Reminder {
@@ -153,3 +153,4 @@ model AuditLog {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+

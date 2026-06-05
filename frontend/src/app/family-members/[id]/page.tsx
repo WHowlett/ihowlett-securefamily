@@ -1,5 +1,6 @@
 import MedicalProfileForm from "@/components/MedicalProfileForm";
 import Link from "next/link";
+import AddReminderForm from "@/components/AddReminderForm";
 
 type ReminderSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 type ReminderStatus = "OPEN" | "COMPLETED" | "SNOOZED" | "CANCELLED";
@@ -248,9 +249,7 @@ export default async function FamilyMemberPage({
               </div>
             )}
 
-            <button className="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
-              Add Reminder
-            </button>
+            <AddReminderForm familyMemberId={member.id} />
           </div>
 
           <FeaturePanel

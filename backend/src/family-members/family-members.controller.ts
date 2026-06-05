@@ -47,7 +47,7 @@ export class FamilyMembersController {
     return this.familyMembersService.upsertMedicalProfile(id, body);
   }
 
-  @Post(':id/reminders')
+    @Post(':id/reminders')
   createReminder(
     @Param('id') id: string,
     @Body()
@@ -63,6 +63,7 @@ export class FamilyMembersController {
         | 'LEGAL_DEADLINE'
         | 'SCHOOL_EVENT'
         | 'OTHER';
+      severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
       dueDate: string;
     },
   ) {

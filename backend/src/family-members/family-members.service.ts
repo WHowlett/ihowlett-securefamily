@@ -88,7 +88,7 @@ export class FamilyMembersService {
     });
   }
 
-  createReminder(
+    createReminder(
     familyMemberId: string,
     data: {
       title: string;
@@ -102,6 +102,7 @@ export class FamilyMembersService {
         | 'LEGAL_DEADLINE'
         | 'SCHOOL_EVENT'
         | 'OTHER';
+      severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
       dueDate: string;
     },
   ) {
@@ -111,6 +112,7 @@ export class FamilyMembersService {
         title: data.title,
         description: data.description,
         type: data.type,
+        severity: data.severity ?? 'MEDIUM',
         dueDate: new Date(data.dueDate),
       },
     });

@@ -1,6 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as Minio from 'minio';
 import { randomUUID } from 'crypto';
+import type { File } from 'multer';
+
+
 
 @Injectable()
 export class StorageService implements OnModuleInit {
@@ -35,7 +38,7 @@ async getFileStream(objectName: string) {
 
   async uploadFile(params: {
     familyMemberId: string;
-    file: Express.Multer.File;
+    file: File;
   }) {
     const fileExtension = params.file.originalname.includes('.')
       ? params.file.originalname.split('.').pop()

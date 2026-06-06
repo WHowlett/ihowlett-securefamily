@@ -13,6 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FamilyMembersService } from './family-members.service';
+import type { File } from 'multer';
 
 @Controller('family-members')
 export class FamilyMembersController {
@@ -165,7 +166,7 @@ async previewDocument(
   @UseInterceptors(FileInterceptor('file'))
   uploadDocument(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: File,
     @Body()
     body: {
       category:

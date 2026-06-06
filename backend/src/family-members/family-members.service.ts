@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import type { File } from 'multer';
 
 @Injectable()
 export class FamilyMembersService {
@@ -233,7 +234,7 @@ export class FamilyMembersService {
 
   async uploadDocument(
     familyMemberId: string,
-    file: Express.Multer.File,
+    file: File,
     data: {
       category:
         | 'MEDICAL'

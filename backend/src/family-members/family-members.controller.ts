@@ -23,6 +23,7 @@ export class FamilyMembersController {
     return this.familyMembersService.findAll();
   }
 
+
   @Get('documents/:documentId/download')
   async downloadDocument(
     @Param('documentId') documentId: string,
@@ -39,6 +40,28 @@ export class FamilyMembersController {
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="${document.fileName}"`,
+    );
+
+    fileStream.pipe(res);
+  }
+
+
+  @Get('documents/:documentId/preview')
+  async previewDocument(
+    @Param('documentId') documentId: string,
+    @Res() res: Response,
+  ) {
+    const { document, fileStream } =
+      await this.familyMembersService.getDocumentForDownload(documentId);
+
+    res.setHeader(
+      'Content-Type',
+      document.mimeType || 'application/octet-stream',
+    );
+
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${document.fileName}"`,
     );
 
     fileStream.pipe(res);

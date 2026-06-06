@@ -47,25 +47,25 @@ export class FamilyMembersController {
 
 
   @Get('documents/:documentId/preview')
-  async previewDocument(
-    @Param('documentId') documentId: string,
-    @Res() res: Response,
-  ) {
-    const { document, fileStream } =
-      await this.familyMembersService.getDocumentForDownload(documentId);
+async previewDocument(
+  @Param('documentId') documentId: string,
+  @Res() res: Response,
+) {
+  const { document, fileStream } =
+    await this.familyMembersService.getDocumentForDownload(documentId);
 
-    res.setHeader(
-      'Content-Type',
-      document.mimeType || 'application/octet-stream',
-    );
+  res.setHeader(
+    'Content-Type',
+    document.mimeType || 'application/octet-stream',
+  );
 
-    res.setHeader(
-      'Content-Disposition',
-      `inline; filename="${document.fileName}"`,
-    );
+  res.setHeader(
+    'Content-Disposition',
+    `inline; filename="${document.fileName}"`,
+  );
 
-    fileStream.pipe(res);
-  }
+  fileStream.pipe(res);
+}
 
   @Get(':id')
   findOne(@Param('id') id: string) {

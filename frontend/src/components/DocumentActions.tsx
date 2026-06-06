@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import DocumentPreviewModal from "./DocumentPreviewModal";
 
 type DocumentCategory =
   | "MEDICAL"
@@ -18,6 +19,7 @@ type DocumentActionsProps = {
     category: string;
     title: string;
     fileName: string;
+    mimeType?: string | null;
     expiresAt?: string | null;
   };
 };
@@ -160,7 +162,7 @@ export default function DocumentActions({ document }: DocumentActionsProps) {
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
-      
+      <DocumentPreviewModal document={document} />
        <a
   href={`http://localhost:3000/family-members/documents/${document.id}/download`}
   className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { StorageService } from '../storage/storage.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class FamilyMembersService {
   constructor(
-  private readonly prisma: PrismaService,
-  private readonly storageService: StorageService,
-) {}
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
 
   findAll() {
     return this.prisma.familyMember.findMany({
@@ -264,5 +264,29 @@ export class FamilyMembersService {
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
+  }
+
+  async getDocumentForDownload(documentId: string) {
+    const document = await this.prisma.document.findUnique({
+      where: {
+        id: documentId,
+      },
+    });
+
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    const objectName = document.storagePath.replace(
+      'securefamily-documents/',
+      '',
+    );
+
+    const fileStream = await this.storageService.getFileStream(objectName);
+
+    return {
+      document,
+      fileStream,
+    };
   }
 }

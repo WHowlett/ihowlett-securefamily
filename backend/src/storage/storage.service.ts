@@ -6,6 +6,11 @@ import { randomUUID } from 'crypto';
 export class StorageService implements OnModuleInit {
   private minioClient: Minio.Client;
   private bucketName: string;
+  
+async getFileStream(objectName: string) {
+    return this.minioClient.getObject(this.bucketName, objectName);
+  }
+
 
   constructor() {
     this.bucketName = process.env.MINIO_BUCKET || 'securefamily-documents';

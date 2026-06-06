@@ -160,7 +160,15 @@ export default function DocumentActions({ document }: DocumentActionsProps) {
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
-      <button
+      
+       <a
+  href={`http://localhost:3000/family-members/documents/${document.id}/download`}
+  className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+>
+  Download
+</a>
+
+       <button
         type="button"
         onClick={() => setIsEditing(true)}
         className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"

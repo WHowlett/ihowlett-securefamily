@@ -2,19 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as Minio from 'minio';
 import { randomUUID } from 'crypto';
 
-file: Express.Multer.File;
-
-
-
 @Injectable()
 export class StorageService implements OnModuleInit {
   private minioClient: Minio.Client;
   private bucketName: string;
-  
-async getFileStream(objectName: string) {
-    return this.minioClient.getObject(this.bucketName, objectName);
-  }
-
 
   constructor() {
     this.bucketName = process.env.MINIO_BUCKET || 'securefamily-documents';
@@ -24,8 +15,7 @@ async getFileStream(objectName: string) {
       port: Number(process.env.MINIO_PORT || 9000),
       useSSL: process.env.MINIO_USE_SSL === 'true',
       accessKey: process.env.MINIO_ACCESS_KEY || 'securefamily_admin',
-      secretKey:
-        process.env.MINIO_SECRET_KEY || 'securefamily_minio_password',
+      secretKey: process.env.MINIO_SECRET_KEY || 'securefamily_minio_password',
     });
   }
 
@@ -39,7 +29,7 @@ async getFileStream(objectName: string) {
 
   async uploadFile(params: {
     familyMemberId: string;
-    file: File;
+    file: Express.Multer.File;
   }) {
     const fileExtension = params.file.originalname.includes('.')
       ? params.file.originalname.split('.').pop()
@@ -65,5 +55,9 @@ async getFileStream(objectName: string) {
       mimeType: params.file.mimetype,
       sizeBytes: params.file.size,
     };
+  }
+
+  async getFileStream(objectName: string) {
+    return this.minioClient.getObject(this.bucketName, objectName);
   }
 }

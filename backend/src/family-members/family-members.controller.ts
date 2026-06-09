@@ -13,7 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FamilyMembersService } from './family-members.service';
-@UploadedFile() file: Express.Multer.File,
+
 @Controller('family-members')
 export class FamilyMembersController {
   constructor(private readonly familyMembersService: FamilyMembersService) {}
@@ -22,7 +22,6 @@ export class FamilyMembersController {
   findAll() {
     return this.familyMembersService.findAll();
   }
-
 
   @Get('documents/:documentId/download')
   async downloadDocument(
@@ -45,27 +44,26 @@ export class FamilyMembersController {
     fileStream.pipe(res);
   }
 
-
   @Get('documents/:documentId/preview')
-async previewDocument(
-  @Param('documentId') documentId: string,
-  @Res() res: Response,
-) {
-  const { document, fileStream } =
-    await this.familyMembersService.getDocumentForDownload(documentId);
+  async previewDocument(
+    @Param('documentId') documentId: string,
+    @Res() res: Response,
+  ) {
+    const { document, fileStream } =
+      await this.familyMembersService.getDocumentForDownload(documentId);
 
-  res.setHeader(
-    'Content-Type',
-    document.mimeType || 'application/octet-stream',
-  );
+    res.setHeader(
+      'Content-Type',
+      document.mimeType || 'application/octet-stream',
+    );
 
-  res.setHeader(
-    'Content-Disposition',
-    `inline; filename="${document.fileName}"`,
-  );
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${document.fileName}"`,
+    );
 
-  fileStream.pipe(res);
-}
+    fileStream.pipe(res);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -165,7 +163,7 @@ async previewDocument(
   @UseInterceptors(FileInterceptor('file'))
   uploadDocument(
     @Param('id') id: string,
-    @UploadedFile() file: File,
+    @UploadedFile() file: Express.Multer.File,
     @Body()
     body: {
       category:

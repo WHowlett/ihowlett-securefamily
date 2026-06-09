@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,7 +14,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FamilyMembersService } from './family-members.service';
-
 @Controller('family-members')
 export class FamilyMembersController {
   constructor(private readonly familyMembersService: FamilyMembersService) {}
@@ -159,7 +159,7 @@ export class FamilyMembersController {
     return this.familyMembersService.createDocument(id, body);
   }
 
-  @Post(':id/documents/upload')
+    @Post(':id/documents/upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadDocument(
     @Param('id') id: string,
@@ -178,6 +178,29 @@ export class FamilyMembersController {
       expiresAt?: string | null;
     },
   ) {
+    if (!file) {
+      throw new BadRequestException('A document file is required.');
+    }
+
+    const maxFileSizeBytes = 10 * 1024 * 1024;
+
+    const allowedMimeTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'text/plain',
+    ];
+
+    if (file.size > maxFileSizeBytes) {
+      throw new BadRequestException('File is too large. Maximum size is 10 MB.');
+    }
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Unsupported file type. Allowed types are PDF, PNG, JPG, JPEG, and TXT.',
+      );
+    }
+
     return this.familyMembersService.uploadDocument(id, file, body);
   }
 

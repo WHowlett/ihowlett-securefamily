@@ -13,8 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FamilyMembersService } from './family-members.service';
-import type { File } from 'multer';
-
+@UploadedFile() file: Express.Multer.File,
 @Controller('family-members')
 export class FamilyMembersController {
   constructor(private readonly familyMembersService: FamilyMembersService) {}

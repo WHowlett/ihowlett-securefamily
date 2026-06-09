@@ -1,68 +1,94 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { StorageService } from '../storage/storage.service';
-import type { File } from 'multer';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Res,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import { FamilyMembersService } from './family-members.service';
 
-@Injectable()
-export class FamilyMembersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly storageService: StorageService,
-  ) {}
+@Controller('family-members')
+export class FamilyMembersController {
+  constructor(private readonly familyMembersService: FamilyMembersService) {}
 
+  @Get()
   findAll() {
-    return this.prisma.familyMember.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        medicalProfile: true,
-        documents: true,
-        reminders: true,
-      },
-    });
+    return this.familyMembersService.findAll();
   }
 
-  findOne(id: string) {
-    return this.prisma.familyMember.findUnique({
-      where: { id },
-      include: {
-        medicalProfile: true,
-        documents: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        reminders: {
-          orderBy: {
-            dueDate: 'asc',
-          },
-        },
-      },
-    });
+  @Get('documents/:documentId/preview')
+  async previewDocument(
+    @Param('documentId') documentId: string,
+    @Res() res: Response,
+  ) {
+    const { document, fileStream } =
+      await this.familyMembersService.getDocumentForDownload(documentId);
+
+    res.setHeader(
+      'Content-Type',
+      document.mimeType || 'application/octet-stream',
+    );
+
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${document.fileName}"`,
+    );
+
+    fileStream.pipe(res);
   }
 
-  create(data: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth?: string;
-    relationship?: string;
-    photoUrl?: string;
-  }) {
-    return this.prisma.familyMember.create({
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-        relationship: data.relationship,
-        photoUrl: data.photoUrl,
-      },
-    });
+  @Get('documents/:documentId/download')
+  async downloadDocument(
+    @Param('documentId') documentId: string,
+    @Res() res: Response,
+  ) {
+    const { document, fileStream } =
+      await this.familyMembersService.getDocumentForDownload(documentId);
+
+    res.setHeader(
+      'Content-Type',
+      document.mimeType || 'application/octet-stream',
+    );
+
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${document.fileName}"`,
+    );
+
+    fileStream.pipe(res);
   }
 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.familyMembersService.findOne(id);
+  }
+
+  @Post()
+  create(
+    @Body()
+    body: {
+      firstName: string;
+      lastName: string;
+      dateOfBirth?: string;
+      relationship?: string;
+      photoUrl?: string;
+    },
+  ) {
+    return this.familyMembersService.create(body);
+  }
+
+  @Post(':id/medical-profile')
   upsertMedicalProfile(
-    familyMemberId: string,
-    data: {
+    @Param('id') id: string,
+    @Body()
+    body: {
       bloodType?: string;
       allergies?: string;
       conditions?: string;
@@ -73,37 +99,14 @@ export class FamilyMembersService {
       notes?: string;
     },
   ) {
-    return this.prisma.medicalProfile.upsert({
-      where: {
-        familyMemberId,
-      },
-      update: {
-        bloodType: data.bloodType,
-        allergies: data.allergies,
-        conditions: data.conditions,
-        medications: data.medications,
-        primaryDoctor: data.primaryDoctor,
-        insurance: data.insurance,
-        pharmacy: data.pharmacy,
-        notes: data.notes,
-      },
-      create: {
-        familyMemberId,
-        bloodType: data.bloodType,
-        allergies: data.allergies,
-        conditions: data.conditions,
-        medications: data.medications,
-        primaryDoctor: data.primaryDoctor,
-        insurance: data.insurance,
-        pharmacy: data.pharmacy,
-        notes: data.notes,
-      },
-    });
+    return this.familyMembersService.upsertMedicalProfile(id, body);
   }
 
+  @Post(':id/reminders')
   createReminder(
-    familyMemberId: string,
-    data: {
+    @Param('id') id: string,
+    @Body()
+    body: {
       title: string;
       description?: string;
       type:
@@ -119,41 +122,24 @@ export class FamilyMembersService {
       dueDate: string;
     },
   ) {
-    return this.prisma.reminder.create({
-      data: {
-        familyMemberId,
-        title: data.title,
-        description: data.description,
-        type: data.type,
-        severity: data.severity ?? 'MEDIUM',
-        dueDate: new Date(data.dueDate),
-      },
-    });
+    return this.familyMembersService.createReminder(id, body);
   }
 
-  completeReminder(reminderId: string) {
-    return this.prisma.reminder.update({
-      where: {
-        id: reminderId,
-      },
-      data: {
-        completed: true,
-        status: 'COMPLETED',
-      },
-    });
+  @Patch('reminders/:reminderId/complete')
+  completeReminder(@Param('reminderId') reminderId: string) {
+    return this.familyMembersService.completeReminder(reminderId);
   }
 
-  deleteReminder(reminderId: string) {
-    return this.prisma.reminder.delete({
-      where: {
-        id: reminderId,
-      },
-    });
+  @Delete('reminders/:reminderId')
+  deleteReminder(@Param('reminderId') reminderId: string) {
+    return this.familyMembersService.deleteReminder(reminderId);
   }
 
+  @Post(':id/documents')
   createDocument(
-    familyMemberId: string,
-    data: {
+    @Param('id') id: string,
+    @Body()
+    body: {
       category:
         | 'MEDICAL'
         | 'LEGAL'
@@ -170,23 +156,36 @@ export class FamilyMembersService {
       expiresAt?: string | null;
     },
   ) {
-    return this.prisma.document.create({
-      data: {
-        familyMemberId,
-        category: data.category,
-        title: data.title,
-        fileName: data.fileName,
-        storagePath: data.storagePath ?? `placeholder/${data.fileName}`,
-        mimeType: data.mimeType,
-        sizeBytes: data.sizeBytes,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-      },
-    });
+    return this.familyMembersService.createDocument(id, body);
   }
 
+  @Post(':id/documents/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadDocument(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body()
+    body: {
+      category:
+        | 'MEDICAL'
+        | 'LEGAL'
+        | 'INSURANCE'
+        | 'FINANCIAL'
+        | 'EDUCATION'
+        | 'PERSONAL'
+        | 'EMERGENCY';
+      title: string;
+      expiresAt?: string | null;
+    },
+  ) {
+    return this.familyMembersService.uploadDocument(id, file, body);
+  }
+
+  @Patch('documents/:documentId')
   updateDocument(
-    documentId: string,
-    data: {
+    @Param('documentId') documentId: string,
+    @Body()
+    body: {
       category?:
         | 'MEDICAL'
         | 'LEGAL'
@@ -203,91 +202,11 @@ export class FamilyMembersService {
       expiresAt?: string | null;
     },
   ) {
-    return this.prisma.document.update({
-      where: {
-        id: documentId,
-      },
-      data: {
-        category: data.category,
-        title: data.title,
-        fileName: data.fileName,
-        storagePath: data.storagePath,
-        mimeType: data.mimeType,
-        sizeBytes: data.sizeBytes,
-        expiresAt:
-          data.expiresAt === undefined
-            ? undefined
-            : data.expiresAt
-              ? new Date(data.expiresAt)
-              : null,
-      },
-    });
+    return this.familyMembersService.updateDocument(documentId, body);
   }
 
-  deleteDocument(documentId: string) {
-    return this.prisma.document.delete({
-      where: {
-        id: documentId,
-      },
-    });
-  }
-
-  async uploadDocument(
-    familyMemberId: string,
-    file: File,
-    data: {
-      category:
-        | 'MEDICAL'
-        | 'LEGAL'
-        | 'INSURANCE'
-        | 'FINANCIAL'
-        | 'EDUCATION'
-        | 'PERSONAL'
-        | 'EMERGENCY';
-      title: string;
-      expiresAt?: string | null;
-    },
-  ) {
-    const uploadedFile = await this.storageService.uploadFile({
-      familyMemberId,
-      file,
-    });
-
-    return this.prisma.document.create({
-      data: {
-        familyMemberId,
-        category: data.category,
-        title: data.title,
-        fileName: uploadedFile.fileName,
-        storagePath: uploadedFile.storagePath,
-        mimeType: uploadedFile.mimeType,
-        sizeBytes: uploadedFile.sizeBytes,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
-      },
-    });
-  }
-
-  async getDocumentForDownload(documentId: string) {
-    const document = await this.prisma.document.findUnique({
-      where: {
-        id: documentId,
-      },
-    });
-
-    if (!document) {
-      throw new Error('Document not found');
-    }
-
-    const objectName = document.storagePath.replace(
-      'securefamily-documents/',
-      '',
-    );
-
-    const fileStream = await this.storageService.getFileStream(objectName);
-
-    return {
-      document,
-      fileStream,
-    };
+  @Delete('documents/:documentId')
+  deleteDocument(@Param('documentId') documentId: string) {
+    return this.familyMembersService.deleteDocument(documentId);
   }
 }

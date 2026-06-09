@@ -1,7 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as Minio from 'minio';
 import { randomUUID } from 'crypto';
-import type { File } from 'multer';
+
+file: Express.Multer.File;
 
 
 

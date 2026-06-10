@@ -72,6 +72,11 @@ export class FamilyMembersController {
     fileStream.pipe(res);
   }
 
+    @Get('audit-logs')
+  findRecentAuditLogs() {
+    return this.familyMembersService.findRecentAuditLogs();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.familyMembersService.findOne(id);

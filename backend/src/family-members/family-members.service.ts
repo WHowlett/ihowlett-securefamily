@@ -361,6 +361,15 @@ export class FamilyMembersService {
     };
   }
 
+  findRecentAuditLogs() {
+    return this.prisma.auditLog.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 25,
+    });
+  }
+
     private createAuditLog(data: {
     action: string;
     resource: string;

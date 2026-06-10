@@ -3,6 +3,8 @@ import MedicalProfileForm from "@/components/MedicalProfileForm";
 import ReminderActions from "@/components/ReminderActions";
 import AddDocumentForm from "@/components/AddDocumentForm";
 import DocumentActions from "@/components/DocumentActions";
+import AuditLogPanel from "@/components/AuditLogPanel";
+
 import Link from "next/link";
 
 type ReminderSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -352,11 +354,7 @@ export default async function FamilyMemberPage({
             button="Request PDF Export"
           />
 
-          <FeaturePanel
-            title="Activity & Audit Log"
-            description="Track profile views, edits, document uploads, downloads, PDF requests, approvals, and permission changes."
-            button="View Activity"
-          />
+          <AuditLogPanel />
         </section>
       </div>
     </main>

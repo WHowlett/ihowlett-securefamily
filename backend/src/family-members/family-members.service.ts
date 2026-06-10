@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 
+type DocumentAction = 'DOCUMENT_PREVIEWED' | 'DOCUMENT_DOWNLOADED';
+
 @Injectable()
 export class FamilyMembersService {
   constructor(
@@ -183,7 +185,7 @@ export class FamilyMembersService {
     });
   }
 
-  updateDocument(
+  async updateDocument(
     documentId: string,
     data: {
       category?:
@@ -202,7 +204,7 @@ export class FamilyMembersService {
       expiresAt?: string | null;
     },
   ) {
-    return this.prisma.document.update({
+    const document = await this.prisma.document.update({
       where: {
         id: documentId,
       },
@@ -221,9 +223,48 @@ export class FamilyMembersService {
               : null,
       },
     });
+
+    await this.createAuditLog({
+      action: 'DOCUMENT_UPDATED',
+      resource: 'Document',
+      resourceId: document.id,
+      metadata: {
+        title: document.title,
+        fileName: document.fileName,
+        category: document.category,
+        expiresAt: document.expiresAt,
+      },
+    });
+
+    return document;
   }
 
-  deleteDocument(documentId: string) {
+  async deleteDocument(documentId: string) {
+    const document = await this.prisma.document.findUnique({
+      where: {
+        id: documentId,
+      },
+    });
+
+    if (!document) {
+      return this.prisma.document.delete({
+        where: {
+          id: documentId,
+        },
+      });
+    }
+
+    await this.createAuditLog({
+      action: 'DOCUMENT_DELETED',
+      resource: 'Document',
+      resourceId: document.id,
+      metadata: {
+        title: document.title,
+        fileName: document.fileName,
+        familyMemberId: document.familyMemberId,
+      },
+    });
+
     return this.prisma.document.delete({
       where: {
         id: documentId,
@@ -252,7 +293,7 @@ export class FamilyMembersService {
       file,
     });
 
-    return this.prisma.document.create({
+    const document = await this.prisma.document.create({
       data: {
         familyMemberId,
         category: data.category,
@@ -264,9 +305,27 @@ export class FamilyMembersService {
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       },
     });
+
+    await this.createAuditLog({
+      action: 'DOCUMENT_UPLOADED',
+      resource: 'Document',
+      resourceId: document.id,
+      metadata: {
+        familyMemberId,
+        title: document.title,
+        fileName: document.fileName,
+        mimeType: document.mimeType,
+        sizeBytes: document.sizeBytes,
+      },
+    });
+
+    return document;
   }
 
-  async getDocumentForDownload(documentId: string) {
+  async getDocumentForDownload(
+    documentId: string,
+    action: DocumentAction = 'DOCUMENT_DOWNLOADED',
+  ) {
     const document = await this.prisma.document.findUnique({
       where: {
         id: documentId,
@@ -284,9 +343,40 @@ export class FamilyMembersService {
 
     const fileStream = await this.storageService.getFileStream(objectName);
 
+    await this.createAuditLog({
+      action,
+      resource: 'Document',
+      resourceId: document.id,
+      metadata: {
+        title: document.title,
+        fileName: document.fileName,
+        mimeType: document.mimeType,
+        sizeBytes: document.sizeBytes,
+      },
+    });
+
     return {
       document,
       fileStream,
     };
+  }
+
+    private createAuditLog(data: {
+    action: string;
+    resource: string;
+    resourceId?: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    return this.prisma.auditLog.create({
+      data: {
+        action: data.action,
+        target: JSON.stringify({
+          resource: data.resource,
+          resourceId: data.resourceId,
+          metadata: data.metadata,
+        }),
+        result: 'SUCCESS',
+      },
+    });
   }
 }

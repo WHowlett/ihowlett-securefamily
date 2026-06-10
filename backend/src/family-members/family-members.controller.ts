@@ -14,6 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FamilyMembersService } from './family-members.service';
+
 @Controller('family-members')
 export class FamilyMembersController {
   constructor(private readonly familyMembersService: FamilyMembersService) {}
@@ -29,7 +30,10 @@ export class FamilyMembersController {
     @Res() res: Response,
   ) {
     const { document, fileStream } =
-      await this.familyMembersService.getDocumentForDownload(documentId);
+      await this.familyMembersService.getDocumentForDownload(
+        documentId,
+        'DOCUMENT_DOWNLOADED',
+      );
 
     res.setHeader(
       'Content-Type',
@@ -50,7 +54,10 @@ export class FamilyMembersController {
     @Res() res: Response,
   ) {
     const { document, fileStream } =
-      await this.familyMembersService.getDocumentForDownload(documentId);
+      await this.familyMembersService.getDocumentForDownload(
+        documentId,
+        'DOCUMENT_PREVIEWED',
+      );
 
     res.setHeader(
       'Content-Type',
@@ -159,7 +166,7 @@ export class FamilyMembersController {
     return this.familyMembersService.createDocument(id, body);
   }
 
-    @Post(':id/documents/upload')
+  @Post(':id/documents/upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadDocument(
     @Param('id') id: string,
